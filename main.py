@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 import typing_extensions as typing
 import json
-from Markdown2docx import Markdown2docx
 import gradio as gr
 
 print(gr.__version__)
