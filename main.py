@@ -355,7 +355,7 @@ class QuestionAsker(BaseClass):
         else:
             self.output += "User: " + user_input + "\n"
             response = self.sql_chat.send_message(user_input)
-        print(response.text)    
+        
         response_json = json.loads(response.text)
         question = response_json.get("question")
         self.output += "CRO: " + question + "\n"
@@ -378,7 +378,7 @@ class CodeWriter(BaseClass):
         
     def generate_output(self, output_cro):
         response = self.sql_chat.send_message(output_cro)
-        print(response.text)
+        print(f"Response of coder: \n{response.text}\n\n-------------------\n\n")
         if ("```python" in response.text):
             response_output = response.text.split("```python")[1].split("```")[0]
         else:
@@ -393,9 +393,7 @@ class Review(BaseClass):
         self.srs_preparer = CodeWriter()
         
     def generate_output(self, output_cro, needs_review=False, review_message=None,last_code=None,last_eval_output=None, reviewCount=0):
-        print(output_cro)
-        print(needs_review)
-        print(review_message)
+        
         if needs_review:
             output_cro = f"""
             
@@ -406,16 +404,14 @@ class Review(BaseClass):
             Tester Agent: {review_message}
             
             """
-            print("cro message:\n\n")
-            print(output_cro)
+           
         
         output = self.srs_preparer.generate_output(output_cro)
         
         if output is None:
             return last_code
         
-        print("output:\n\n\n")
-        print(output)
+        
         
         evulated = None
         evulate_errors = None
@@ -447,6 +443,8 @@ class Review(BaseClass):
         output_or_errors = {evulate_errors}
         """
         
+        print(request_str)
+        
         
         response = self.sql_chat.send_message(request_str)
         response_json = json.loads(response.text)
@@ -456,20 +454,10 @@ class Review(BaseClass):
             return self.generate_output(output_cro, True, review_message= review_message,last_code=output,last_eval_output=request_str, reviewCount=reviewCount+1)
         return output
         
-        
+    
+# Instantiate the question asker agent    
 question_asker = QuestionAsker()
-def map_gradio_to_gpt_history(gradio_history):
-    gpt_history = []
-    for message in gradio_history:
-        # Extract role and content, ignoring metadata
-        if (message["content"] != "" and message["content"] != "None"):
-            gpt_message = {
-            'role': message['role'],
-            'content': message['content']
-            }
-            gpt_history.append(gpt_message)
-    print(gpt_history)        
-    return gpt_history
+
 
 def converse(user_input, chat_history=[]):
     # set history to genai if its not empty
@@ -479,19 +467,31 @@ def converse(user_input, chat_history=[]):
         return "Please provide an input", chat_history
     
     question, keep_asking = question_asker.ask_question(user_input)
+    print(f"Question: {question}")
+    print(f"Keep Asking: {keep_asking}\n\n")
     if keep_asking:
         return question
     else:
         document_writer = DocumentWriter()
         document = document_writer.generate_output(question_asker.output)
+        print(f"Document: {document}\n\n")
         srs_reviewer = Review()
         review_message = srs_reviewer.generate_output(document)
-        print("last message:\n\n")
-        print(f"""
-```python
-        {review_message.strip()}\n
-```
-        """)
+        
+        tokens_of_question_asker = question_asker.sql_model.count_tokens(question_asker.sql_chat.history).total_tokens
+        tokens_of_document_writer = document_writer.sql_model.count_tokens(document_writer.sql_chat.history).total_tokens
+        tokens_of_srs_reviewer = srs_reviewer.sql_model.count_tokens(srs_reviewer.sql_chat.history).total_tokens
+        tokens_of_code_writer = srs_reviewer.srs_preparer.sql_model.count_tokens(srs_reviewer.srs_preparer.sql_chat.history).total_tokens
+        
+        print(f"Tokens of Question Asker: {tokens_of_question_asker}")
+        print(f"Tokens of Document Writer: {tokens_of_document_writer}")
+        print(f"Tokens of Code Writer: {tokens_of_code_writer}")
+        print(f"Tokens of Reviewer: {tokens_of_srs_reviewer}")
+        print(f"Total number of tokens: {tokens_of_question_asker + tokens_of_document_writer + tokens_of_code_writer + tokens_of_srs_reviewer}")
+        
+        print(f"Final Review Message: \n\n{review_message}")
+        
+        
         return f"""
 ```python
         {review_message.strip()}\n
