@@ -166,7 +166,7 @@ Given the following information obtained by the question asker agent:
 
 """
 
-srs_preparer_instruction = """
+code_writer_instruction = """
 
 ### System Instruction for Python Code Writer Agent
 
@@ -190,6 +190,10 @@ srs_preparer_instruction = """
 4. **Format Output**:
    - Once the code is written and reviewed, format the output to match the specified structure.
    - The code should be enclosed within markdown python code tags for clarity and ease of extraction.
+   
+**Important Note:**
+
+Because the code will be evulated seperately, you should not include any input statements in the code. Instead of getting inputs from user, you should directly assign the values to the variables by yourself.
 
 **Example Workflow**:
 
@@ -373,7 +377,7 @@ class DocumentWriter(BaseClass):
         return document
 
 class CodeWriter(BaseClass):
-    def __init__(self, system_instruction=srs_preparer_instruction):
+    def __init__(self, system_instruction=code_writer_instruction):
         super().__init__(system_instruction, None, is_json=False)
         
     def generate_output(self, output_cro):
