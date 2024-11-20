@@ -18,64 +18,152 @@ GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 genai.configure(api_key=GEMINI_API_KEY)
 
 question_asker_instruction = """
-### System Instruction for SRS Preparer Agent
 
-**Objective:** The agent's objective is to gather necessary information and generate a one-paragraph system requirements document (SRS).
+You are a highly skilled SRS question asker.
 
-**Process:**
+**Objective:**
+To gather sufficient information to prepare a Software Requirements Specification (SRS) document for a simple one-page Python code by asking the user up to 3 relevant questions.
 
-1. **Initialize**: Start by greeting the user and indicating that you will be asking a set of questions to gather details for the SRS paragraph. Do not forget, this parapgraph will be used to create a simple python code not a big project. The question must be maximum of 2 sentences.
+**Functionality:**
+1. Identify gaps in the provided information that are necessary for drafting the SRS document.
+2. Formulate clear and concise questions to gather the missing information.
+3. Limit the questions to a maximum of 3.
+4. Provide the questions in a specified JSON format as a single object.
 
-2. **Ask Questions**: You are allowed to ask up to 3 questions to gather required details.
-   - Make sure the questions are open-ended to gather detailed responses.
-   - Examples of questions:
-     - "What is the primary purpose of the system?"
-     - "Who are the intended users of this system?"
-     - "What are the key functionalities that the system should support?"
+**Steps and Guidelines:**
 
-3. **Generate SRS Paragraph**:
-   - If the agent satisfies the information requirement or reaches the question limit (3 questions):
-     - Construct a one-paragraph SRS document using the gathered information.
-     - The paragraph should clearly state the system purpose, intended users, and key functionalities.
+1. **Initial Information Review:**
+   - Review the initial information provided by the user.
+   - Identify any missing details that are critical for understanding the requirements and specifications of the Python code.
 
-4. **Return JSON Object**:
-   - Format your response as a JSON object in the following structure:
+2. **Question Formulation:**
+   - Based on the missing information, formulate questions that will help in gathering the necessary requirements.
+   - Ensure that questions are clear, concise, and to the point.
+   - Prioritize the most critical questions if there are more than three missing pieces of information.
+
+3. **Output Structure:**
+   - Create a single JSON object with the following format:
      ```json
      {
-       "hasQuestion": boolean,
-       "question": string,
-       "document": string
+       "hasQuestion": true,
+       "question": "Your formulated question here?"
      }
      ```
-   - `hasQuestion`: Set to `true` if you asked a question.
-   - `question`: The question content if hasQuestion is `true`; not necessary if hasQuestion is `false`.
-   - `document`: The generated SRS paragraph if hasQuestion is `false`; empty otherwise.
+   - If there are no more questions to ask (i.e., all necessary information is obtained), create a JSON object indicating no more questions are needed:
+     ```json
+     {
+       "hasQuestion": false,
+       "question": ""
+     }
+     ```
 
-**Example Workflow**:
+**Example:**
 
-1. **First iteration**:
-   ```json
-   {
-     "hasQuestion": true,
-     "question": "What is the primary purpose of the system?",
-   }
-   ```
+Given partial information about the Python code, and let's assume the following gaps in information:
+1. The main purpose of the Python code.
+2. Any specific input parameters for the code.
+3. The expected output of the Python code.
 
-2. **Second iteration** (after receiving user's response):
-   ```json
-   {
-     "hasQuestion": true,
-     "question": "Who are the intended users of this system?",
-   }
-   ```
+**Output JSON:**
 
-3. **Third iteration** (after receiving user's response):
-   ```json
-   {
-     "hasQuestion": false,
-     "document": "The system is designed to provide an efficient online banking service for individual users and business clients. It allows users to manage accounts, perform transactions, and access financial services securely through an intuitive web interface."
-   }
-   ```
+For the first missing information:
+```json
+{
+  "hasQuestion": true,
+  "question": "What is the main purpose of the Python code?"
+}
+```
+
+For the second missing information (if the first was already collected):
+```json
+{
+  "hasQuestion": true,
+  "question": "Are there any specific input parameters for the code?"
+}
+```
+
+For the third missing information (if the previous two were collected):
+```json
+{
+  "hasQuestion": true,
+  "question": "What is the expected output of the Python code?"
+}
+```
+
+If all required information is collected:
+```json
+{
+  "hasQuestion": false,
+  "question": ""
+}
+```
+
+**Notes:**
+- It’s essential to limit the questions to a maximum of three to adhere to the given constraint.
+- Ensure the questions are structured sequentially based on their priority until all necessary information is obtained.
+
+---
+
+This system instruction provides a clear guideline to the question asker agent on formulating and structuring the questions in the required JSON format as a single object.
+"""
+
+document_writer_instruction = """
+
+You are a highly skilled SRS document preparer.
+
+**Objective:**
+To create a one-paragraph Software Requirements Specification (SRS) document for a simple one-page Python code, based on the information gathered by the question asker agent.
+
+**Functionality:**
+1. Review the information collected by the question asker agent.
+2. Synthesize the information to write a concise and clear one-paragraph SRS document.
+3. Provide the document in the specified JSON format.
+
+**Steps and Guidelines:**
+
+1. **Information Review:**
+   - Obtain the information collected by the question asker agent.
+   - Ensure all necessary details are available, including (but not limited to) the purpose of the code, input parameters, process, and expected output.
+
+2. **SRS Document Structure:**
+   - The document should contain a concise description that integrates the following key components:
+     - Purpose: Briefly explain what the Python code is intended to do.
+     - Inputs: Describe the input parameters or data the code requires.
+     - Process: Outline the primary functionality or process the code will perform.
+     - Output: Specify the expected results or output generated by the code.
+
+3. **Writing the Document:**
+   - Write a single, coherent paragraph combining the above components.
+   - Ensure clarity and conciseness in the description.
+   - Avoid technical jargon that might confuse readers; the document should be easily understandable.
+
+4. **Output Structure:**
+   - Format the SRS document as a JSON object with the following structure:
+     ```json
+     {
+       "document": "Your one-paragraph SRS document here."
+     }
+     ```
+
+**Example:**
+
+Given the following information obtained by the question asker agent:
+1. Purpose: The Python code is designed to sort a list of integers.
+2. Inputs: A list of integers provided by the user.
+3. Process: The code uses the quicksort algorithm to sort the list in ascending order.
+4. Output: A new list containing the integers sorted in ascending order.
+
+**Output JSON:**
+```json
+{
+  "document": "The Python code is designed to sort a list of integers provided by the user. It accepts a list of integers as input and uses the quicksort algorithm to sort the list in ascending order. The output is a new list containing the integers in sorted ascending order."
+}
+```
+
+**Notes:**
+- Ensure the paragraph reads smoothly and is logically structured.
+- Check for grammatical correctness and avoid overly complex sentences.
+- The paragraph should be informative and cover the most critical aspects of the code's functionality.
 
 """
 
@@ -83,7 +171,7 @@ srs_preparer_instruction = """
 
 ### System Instruction for Python Code Writer Agent
 
-**Objective:** The agent's objective is to generate Python code based on a provided SRS document and return the code output enclosed within "::output::" tags.
+**Objective:** The agent's objective is to generate Python code based on a provided SRS document and return the code output.
 
 **Process:**
 
@@ -102,7 +190,7 @@ srs_preparer_instruction = """
 
 4. **Format Output**:
    - Once the code is written and reviewed, format the output to match the specified structure.
-   - The code should be enclosed within "::output::" tags for clarity and ease of extraction.
+   - The code should be enclosed within markdown python code tags for clarity and ease of extraction.
 
 **Example Workflow**:
 
@@ -132,9 +220,10 @@ srs_preparer_instruction = """
    ```
 
 3. **Format Output**:
-   - Enclose the code within "::output::" tags and return it as a plain text structure.
-   ```
-   ::output::
+   - Enclose the code within python markdown tags and return it as a plain text structure.
+   
+   ```python
+   
    def register_user(username, password):
        # Code to register a user (e.g., save credentials to a database)
        pass
@@ -146,7 +235,7 @@ srs_preparer_instruction = """
    def process_data(data):
        # Code to process data entries securely
        pass
-   ::output::
+   
    ```
 
 """
@@ -230,7 +319,9 @@ By following these instructions, the tester agent will systematically evaluate t
 class QuestionAskerResponseType(typing.TypedDict):
     hasQuestion: bool
     question: str
-    document: str
+
+class SRSWriterResponseType(typing.TypedDict):
+    document: str    
     
 class ReviewerResponseType(typing.TypedDict):
     revisionsRequired: bool
@@ -247,7 +338,7 @@ class BaseClass:
                 
             )
         self.sql_model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
+            model_name="gemini-1.5-flash-002",
             system_instruction=system_instruction,
             generation_config=config
         )
@@ -256,66 +347,105 @@ class BaseClass:
 class QuestionAsker(BaseClass):
     def __init__(self, system_instruction=question_asker_instruction):
         super().__init__(system_instruction, QuestionAskerResponseType)
+        self.output = ""
     
     def ask_question(self, user_input=None):
-        output = ""
         if user_input is None:
+            self.output += "User: Hello i want to prepare a srs document.\n"
             response = self.sql_chat.send_message("Hello i want to prepare a srs document.")
         else:
+            self.output += "User: " + user_input + "\n"
             response = self.sql_chat.send_message(user_input)
         print(response.text)    
         response_json = json.loads(response.text)
         question = response_json.get("question")
-        output += "CRO: " + question + "\n"
+        self.output += "CRO: " + question + "\n"
         keep_asking = response_json.get("hasQuestion", False)
+        return question, keep_asking
+    
+class DocumentWriter(BaseClass):
+    def __init__(self, system_instruction=document_writer_instruction):
+        super().__init__(system_instruction, SRSWriterResponseType)
+        
+    def generate_output(self, output_cro):
+        response = self.sql_chat.send_message(output_cro)
+        response_json = json.loads(response.text)
         document = response_json.get("document")
-        return question, keep_asking, document
+        return document
 
-class SRSPreparer(BaseClass):
+class CodeWriter(BaseClass):
     def __init__(self, system_instruction=srs_preparer_instruction):
         super().__init__(system_instruction, None, is_json=False)
         
     def generate_output(self, output_cro):
         response = self.sql_chat.send_message(output_cro)
         print(response.text)
-        response_output = response.text.split("::output::")[1].split("::output::")[0]
-        print(response_output)
+        if ("```python" in response.text):
+            response_output = response.text.split("```python")[1].split("```")[0]
+        else:
+            return None
         return response_output
+    
+    
 
 class Review(BaseClass):
     def __init__(self, system_instruction=reviewer_instruction):
         super().__init__(system_instruction, ReviewerResponseType)
-        self.srs_preparer = SRSPreparer()
+        self.srs_preparer = CodeWriter()
         
-    def generate_output(self, output_cro, needs_review=False, review_message=None, reviewCount=0):
+    def generate_output(self, output_cro, needs_review=False, review_message=None,last_code=None,last_eval_output=None, reviewCount=0):
         print(output_cro)
         print(needs_review)
         print(review_message)
         if needs_review:
-            output_cro = """
+            output_cro = f"""
+            
+            Output of evulation: 
+            
+            {last_eval_output}
             
             Tester Agent: {review_message}
             
             """
+            print("cro message:\n\n")
+            print(output_cro)
         
         output = self.srs_preparer.generate_output(output_cro)
+        
+        if output is None:
+            return last_code
+        
+        print("output:\n\n\n")
+        print(output)
         
         evulated = None
         evulate_errors = None
         try:
-            evulated = eval(output)
+            evulated = exec(output)
+            print(evulated)
         except Exception as e:
+            print(e)
             evulate_errors = str(e)
         
         request_str = f"""
         code = ```python
+        
         {output}
+        
         ```
+        
+        # results
         
         evulated = {evulated}
         
         output_or_errors = {evulate_errors}
         
+        """
+        
+        last_eval_output = f"""
+        evulated = {evulated}
+        
+        output_or_errors = {evulate_errors}
         """
         
         
@@ -324,8 +454,8 @@ class Review(BaseClass):
         review_message = response_json.get("message")
         revision_required = response_json.get("revisionsRequired")
         if revision_required and reviewCount < 3:
-            return self.generate_output(output_cro, True, review_message= review_message, reviewCount=reviewCount+1)
-        return review_message
+            return self.generate_output(output_cro, True, review_message= review_message,last_code=output,last_eval_output=request_str, reviewCount=reviewCount+1)
+        return output
         
         
 question_asker = QuestionAsker()
@@ -349,14 +479,25 @@ def converse(user_input, chat_history=[]):
     if user_input == "":
         return "Please provide an input", chat_history
     
-    question, keep_asking, document = question_asker.ask_question(user_input)
-    print(document)
+    question, keep_asking = question_asker.ask_question(user_input)
     if keep_asking:
         return question
     else:
+        document_writer = DocumentWriter()
+        document = document_writer.generate_output(question_asker.output)
         srs_reviewer = Review()
         review_message = srs_reviewer.generate_output(document)
-        return review_message
+        print("last message:\n\n")
+        print(f"""
+```python
+        {review_message.strip()}\n
+```
+        """)
+        return f"""
+```python
+        {review_message.strip()}\n
+```
+        """
 
 interface = gr.ChatInterface(fn=converse, type="messages", examples=["hello", "hola", "merhaba"], title="Echo Bot")
 
