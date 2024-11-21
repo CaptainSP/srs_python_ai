@@ -1,32 +1,59 @@
-def caesar_cipher(text, shift, mode):
-    """
-    Implements a Caesar cipher for encoding and decoding text.
+def caesar_encrypt(text, shift):
+    """Encrypts a string using the Caesar cipher.
 
     Args:
-        text: The input string (uppercase English letters only).
-        shift: The number of positions to shift each letter.
-        mode: 'encode' or 'decode'.
+        text: The uppercase English alphabet string to encrypt.
+        shift: The integer shift value.
 
     Returns:
-        The encoded or decoded string.  Returns an error message if the input is invalid.
-
+        The encrypted string.
     """
-    if not text.isupper() or not text.isalpha():
-        return "Error: Input must be uppercase English letters only."
-
     result = ''
     for char in text:
-        start = ord('A')
-        shifted_char = chr((ord(char) - start + shift) % 26 + start) if mode == 'encode' else chr((ord(char) - start - shift) % 26 + start)
-        result += shifted_char
+        if 'A' <= char <= 'Z':
+            shifted_char = chr(((ord(char) - ord('A') + shift) % 26) + ord('A'))
+            result += shifted_char
+        else:
+            result += char  # Handle non-alphabetic characters (optional)
+
     return result
 
-#Example usage
-encoded_text = caesar_cipher("HELLO", 3, "encode")
-print(f"Encoded: {encoded_text}")  # Output: KHOOR
+def caesar_decrypt(text, shift):
+    """Decrypts a string encrypted using the Caesar cipher.
 
-decoded_text = caesar_cipher(encoded_text, 3, "decode")
-print(f"Decoded: {decoded_text}")  # Output: HELLO
+    Args:
+        text: The encrypted string.
+        shift: The integer shift value.
 
-invalid_input = caesar_cipher("Hello World",3,"encode")
-print(f"Invalid Input Result: {invalid_input}") # Output: Error: Input must be uppercase English letters only.
+    Returns:
+        The decrypted string.
+    """
+    result = ''
+    for char in text:
+        if 'A' <= char <= 'Z':
+            shifted_char = chr(((ord(char) - ord('A') - shift) % 26) + ord('A'))
+            result += shifted_char
+        else:
+            result += char #Handle non-alphabetic characters (optional)
+
+    return result
+
+
+# Example usage
+text = "HELLO"
+shift = 3
+encrypted_text = caesar_encrypt(text, shift)
+decrypted_text = caesar_decrypt(encrypted_text, shift)
+
+print(f"Original text: {text}")
+print(f"Encrypted text: {encrypted_text}")
+print(f"Decrypted text: {decrypted_text}")
+
+text2 = "HELLO, WORLD!"
+shift2 = 5
+encrypted_text2 = caesar_encrypt(text2, shift2)
+decrypted_text2 = caesar_decrypt(encrypted_text2, shift2)
+
+print(f"\nOriginal text: {text2}")
+print(f"Encrypted text: {encrypted_text2}")
+print(f"Decrypted text: {decrypted_text2}")

@@ -502,7 +502,7 @@ def converse(user_input, chat_history=[]):
 ```
         """
 
-interface = gr.ChatInterface(fn=converse, type="messages", examples=["hello", "hola", "merhaba"], title="Echo Bot")
+interface = gr.ChatInterface(fn=converse, type="messages", examples=["I want you to create caesar cipher for both encrypt function and decrypt function"], title="Echo Bot")
 
 if __name__ == "__main__":
     interface.launch()
