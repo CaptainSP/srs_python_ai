@@ -334,11 +334,18 @@ class BaseClass:
     def __init__(self, system_instruction, response_type, is_json=True):
         config = genai.GenerationConfig(
             response_mime_type="application/json",
-            response_schema=response_type
+            response_schema=response_type,
+            temperature= 1,
+            top_p= 0.95,
+            top_k= 40,
+            max_output_tokens= 8192
         )
         if not is_json:
             config = genai.GenerationConfig(
-                
+                temperature= 1,
+                top_p= 0.95,
+                top_k= 40,
+                max_output_tokens= 8192
             )
         self.sql_model = genai.GenerativeModel(
             model_name="gemini-1.5-flash-002",
